@@ -4,6 +4,7 @@ import {
   Post,
   Get,
   Patch,
+  Delete,
   Param,
   Body,
   Query,
@@ -2233,30 +2234,47 @@ export class CoreDomainController {
   async createUser(@Body() dto: any, @CurrentUser() user: AuthUserPayload) {
     const userRepo = this.dataSource.getRepository(User);
     const empRepo = this.dataSource.getRepository(Employee);
+
+    const cleanUsername = String(dto.username || '').trim();
+    const cleanEmail = String(dto.email || '').trim();
+    if (!cleanUsername || !cleanEmail) {
+      throw new BadRequestException('Debe especificar el nombre de usuario y correo electrónico.');
+    }
+
+    const existingUser = await userRepo.findOne({
+      where: [{ username: cleanUsername }, { email: cleanEmail }],
+    });
+    if (existingUser) {
+      throw new BadRequestException(
+        'Ya existe un usuario con ese nombre de usuario o correo electrónico.'
+      );
+    }
+
     const passwordHash = await bcrypt.hash(dto.password || 'Montana2026*', 10);
 
     const savedUser = await userRepo.save(
       userRepo.create({
-        username: dto.username,
-        email: dto.email,
+        username: cleanUsername,
+        email: cleanEmail,
         passwordHash,
         roleId: dto.roleId,
-        isActive: true,
+        isActive: dto.isActive !== undefined ? Boolean(dto.isActive) : true,
       })
     );
 
     const empCount = await empRepo.count();
+    const uniqueSuffix = Date.now().toString().slice(-4);
     const savedEmp = await empRepo.save(
       empRepo.create({
         userId: savedUser.id,
-        employeeCode: dto.employeeCode || `EMP-${String(empCount + 1).padStart(3, '0')}`,
-        firstName: dto.firstName || dto.username,
+        employeeCode: dto.employeeCode || `EMP-${String(empCount + 1).padStart(3, '0')}-${uniqueSuffix}`,
+        firstName: dto.firstName || cleanUsername,
         lastName: dto.lastName || '',
         documentId: dto.documentId || '',
         phone: dto.phone || '',
         position: dto.position || 'Personal Operativo',
         assignedActivityId: dto.assignedActivityId || null,
-        isActive: true,
+        isActive: savedUser.isActive,
       })
     );
 
@@ -2266,6 +2284,148 @@ export class CoreDomainController {
     });
 
     return { user: savedUser, employee: savedEmp };
+  }
+
+  @Roles(RoleCode.ADMIN)
+  @Patch('settings/users/:id')
+  async updateUser(
+    @Param('id') id: string,
+    @Body() dto: any,
+    @CurrentUser() user: AuthUserPayload
+  ) {
+    const userRepo = this.dataSource.getRepository(User);
+    const empRepo = this.dataSource.getRepository(Employee);
+
+    const targetUser = await userRepo.findOne({ where: { id } });
+    if (!targetUser) {
+      throw new NotFoundException('Usuario no encontrado.');
+    }
+
+    const cleanUsername = dto.username !== undefined ? String(dto.username).trim() : targetUser.username;
+    const cleanEmail = dto.email !== undefined ? String(dto.email).trim() : targetUser.email;
+
+    if (cleanUsername !== targetUser.username) {
+      const dupU = await userRepo.findOne({ where: { username: cleanUsername } });
+      if (dupU && dupU.id !== id) {
+        throw new BadRequestException('Ese nombre de usuario ya está en uso por otro empleado.');
+      }
+      targetUser.username = cleanUsername;
+    }
+
+    if (cleanEmail !== targetUser.email) {
+      const dupE = await userRepo.findOne({ where: { email: cleanEmail } });
+      if (dupE && dupE.id !== id) {
+        throw new BadRequestException('Ese correo electrónico ya está en uso por otro empleado.');
+      }
+      targetUser.email = cleanEmail;
+    }
+
+    if (dto.roleId) {
+      targetUser.roleId = dto.roleId;
+      const roleObj = await this.dataSource.getRepository(Role).findOne({ where: { id: dto.roleId } });
+      if (roleObj) {
+        targetUser.role = roleObj;
+      }
+    }
+
+    if (dto.isActive !== undefined) {
+      targetUser.isActive = Boolean(dto.isActive);
+    }
+
+    if (dto.password && String(dto.password).trim().length > 0) {
+      targetUser.passwordHash = await bcrypt.hash(String(dto.password).trim(), 10);
+    }
+
+    const savedUser = await userRepo.save(targetUser);
+
+    let emp = await empRepo.findOne({ where: { userId: id } });
+    if (!emp) {
+      const empCount = await empRepo.count();
+      emp = empRepo.create({
+        userId: id,
+        employeeCode: `EMP-${String(empCount + 1).padStart(3, '0')}-${Date.now().toString().slice(-4)}`,
+        firstName: dto.firstName || savedUser.username,
+        lastName: dto.lastName || '',
+        documentId: dto.documentId || '',
+        phone: dto.phone || '',
+        position: dto.position || 'Personal Operativo',
+        isActive: savedUser.isActive,
+      });
+    } else {
+      if (dto.firstName !== undefined) emp.firstName = dto.firstName;
+      if (dto.lastName !== undefined) emp.lastName = dto.lastName;
+      if (dto.documentId !== undefined) emp.documentId = dto.documentId;
+      if (dto.phone !== undefined) emp.phone = dto.phone;
+      if (dto.position !== undefined) emp.position = dto.position;
+      emp.isActive = savedUser.isActive;
+    }
+
+    const savedEmp = await empRepo.save(emp);
+
+    await this.coreService.logAudit(user, 'USER_UPDATED', 'users', savedUser.id, {
+      username: savedUser.username,
+      roleId: savedUser.roleId,
+      isActive: savedUser.isActive,
+      passwordChanged: Boolean(dto.password && String(dto.password).trim().length > 0),
+    });
+
+    return { user: savedUser, employee: savedEmp };
+  }
+
+  @Roles(RoleCode.ADMIN)
+  @Delete('settings/users/:id')
+  async deleteUser(@Param('id') id: string, @CurrentUser() user: AuthUserPayload) {
+    if (id === user.id) {
+      throw new BadRequestException('No puedes eliminar el usuario con el que tienes la sesión activa.');
+    }
+
+    const userRepo = this.dataSource.getRepository(User);
+    const empRepo = this.dataSource.getRepository(Employee);
+
+    const targetUser = await userRepo.findOne({ where: { id } });
+    if (!targetUser) {
+      throw new NotFoundException('Usuario no encontrado.');
+    }
+
+    const targetEmp = await empRepo.findOne({ where: { userId: id } });
+    const fallbackEmp = await empRepo
+      .createQueryBuilder('emp')
+      .where('emp.user_id != :id', { id })
+      .getOne();
+
+    await this.dataSource.transaction(async (manager) => {
+      if (targetEmp && fallbackEmp) {
+        await manager.query('UPDATE sales SET employee_id = $1 WHERE employee_id = $2', [
+          fallbackEmp.id,
+          targetEmp.id,
+        ]);
+        await manager.query('UPDATE cash_sessions SET employee_id = $1 WHERE employee_id = $2', [
+          fallbackEmp.id,
+          targetEmp.id,
+        ]);
+      }
+
+      await manager.query(
+        'UPDATE ticket_validations SET validated_by_user_id = $1 WHERE validated_by_user_id = $2',
+        [user.id, id]
+      );
+      await manager.query(
+        'UPDATE activity_incidents SET reported_by_user_id = $1 WHERE reported_by_user_id = $2',
+        [user.id, id]
+      );
+
+      if (targetEmp) {
+        await manager.delete(Employee, { id: targetEmp.id });
+      }
+      await manager.delete(User, { id });
+    });
+
+    await this.coreService.logAudit(user, 'USER_DELETED', 'users', id, {
+      deletedUsername: targetUser.username,
+      deletedEmail: targetUser.email,
+    });
+
+    return { deleted: true, id, username: targetUser.username };
   }
 
   @Roles(RoleCode.ADMIN, RoleCode.MANAGER)

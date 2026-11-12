@@ -1274,9 +1274,9 @@ export default function MontanaRedondaApp() {
                 </span>
               </div>
 
-              {/* Datos Opcionales de Cliente / RNC / NCF y Descuento */}
+              {/* Datos Opcionales de Cliente / RNC y Descuento */}
               <div className="space-y-2 text-xs">
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <input
                     type="text"
                     placeholder="Cliente / Familia (Opcional)"
@@ -1291,17 +1291,6 @@ export default function MontanaRedondaApp() {
                     onChange={(e) => setCustomerRncCedula(e.target.value)}
                     className="rounded-lg border border-slate-300 px-2.5 py-1.5"
                   />
-                  <select
-                    value={ncfType}
-                    onChange={(e) => setNcfType(e.target.value)}
-                    className="rounded-lg border border-slate-300 px-2 py-1.5 bg-white font-bold"
-                  >
-                    <option value="B02">NCF: B02 Consumo</option>
-                    <option value="B01">NCF: B01 Crédito Fiscal</option>
-                    <option value="B14">NCF: B14 Reg. Especial</option>
-                    <option value="B15">NCF: B15 Gubernamental</option>
-                    <option value="E32">e-CF: E32 (Prep.)</option>
-                  </select>
                 </div>
 
                 {/* Botón Aplicar Descuento */}

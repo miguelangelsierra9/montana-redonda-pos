@@ -89,16 +89,19 @@ export function CashCatalogSettingsView({
   const [usersData, setUsersData] = useState<any>({ users: [], roles: [] });
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [newUserForm, setNewUserForm] = useState({
+    id: '',
     username: '',
     email: '',
-    password: 'Montana2026*',
+    password: '',
     roleId: '',
     firstName: '',
     lastName: '',
     documentId: '',
     position: 'Cajero / Recepción',
+    isActive: true,
   });
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const loadCash = async () => {
     try {
@@ -279,24 +282,82 @@ export function CashCatalogSettingsView({
     onRefreshSystem();
   };
 
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await apiFetch('/settings/users', {
-      method: 'POST',
-      body: JSON.stringify(newUserForm),
-    });
+  const resetUserForm = (defaultRoleId?: string) => {
     setNewUserForm({
+      id: '',
       username: '',
       email: '',
-      password: 'Montana2026*',
-      roleId: usersData?.roles?.[0]?.id || '',
+      password: '',
+      roleId: defaultRoleId ?? usersData?.roles?.[0]?.id ?? '',
       firstName: '',
       lastName: '',
       documentId: '',
       position: 'Cajero / Recepción',
+      isActive: true,
     });
-    showToast('Nuevo usuario y ficha de empleado creados.');
-    await loadSettingsAndAudit();
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    try {
+      if (newUserForm.id) {
+        await apiFetch(`/settings/users/${newUserForm.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(newUserForm),
+        });
+        showToast('Usuario y ficha de empleado actualizados correctamente.');
+      } else {
+        await apiFetch('/settings/users', {
+          method: 'POST',
+          body: JSON.stringify({
+            ...newUserForm,
+            password: newUserForm.password || 'Montana2026*',
+          }),
+        });
+        showToast('Nuevo usuario y ficha de empleado creados correctamente.');
+      }
+      resetUserForm();
+      await loadSettingsAndAudit();
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Error al guardar el usuario.');
+    }
+  };
+
+  const handleEditUser = (u: any) => {
+    setErrorMsg(null);
+    setNewUserForm({
+      id: u.id,
+      username: u.username || '',
+      email: u.email || '',
+      password: '',
+      roleId: u.role?.id || u.roleId || usersData?.roles?.[0]?.id || '',
+      firstName: u.employee?.firstName || '',
+      lastName: u.employee?.lastName || '',
+      documentId: u.employee?.documentId || '',
+      position: u.employee?.position || 'Cajero / Recepción',
+      isActive: u.isActive !== false,
+    });
+  };
+
+  const handleDeleteUser = async (u: any) => {
+    setErrorMsg(null);
+    const fullName = `${u.employee?.firstName || ''} ${u.employee?.lastName || ''}`.trim() || u.username;
+    if (!window.confirm(`¿Está seguro de eliminar al usuario "${u.username}" (${fullName})?`)) {
+      return;
+    }
+    try {
+      await apiFetch(`/settings/users/${u.id}`, {
+        method: 'DELETE',
+      });
+      if (newUserForm.id === u.id) {
+        resetUserForm();
+      }
+      showToast(`Usuario "${u.username}" eliminado correctamente.`);
+      await loadSettingsAndAudit();
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'No se pudo eliminar el usuario.');
+    }
   };
 
   if (activeSubTab === 'CASH') {
@@ -951,6 +1012,11 @@ export function CashCatalogSettingsView({
           ✅ {feedbackMsg}
         </div>
       )}
+      {errorMsg && (
+        <div className="p-3 rounded-xl bg-red-100 border border-red-300 text-red-900 text-xs font-bold">
+          ⚠️ {errorMsg}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Configuración Fiscal RD y Tasas */}
@@ -1033,9 +1099,23 @@ export function CashCatalogSettingsView({
           onSubmit={handleCreateUser}
           className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3 text-xs"
         >
-          <h3 className="text-sm font-extrabold uppercase text-ocean-900 flex items-center gap-2">
-            <Users className="w-4 h-4 text-ocean-700" /> Crear Empleado y Asignar Rol de Seguridad
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-extrabold uppercase text-ocean-900 flex items-center gap-2">
+              <Users className="w-4 h-4 text-ocean-700" />{' '}
+              {newUserForm.id
+                ? `Editando Usuario: ${newUserForm.username}`
+                : 'Crear Empleado y Asignar Rol de Seguridad'}
+            </h3>
+            {newUserForm.id && (
+              <button
+                type="button"
+                onClick={() => resetUserForm()}
+                className="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-[11px]"
+              >
+                Cancelar Edición
+              </button>
+            )}
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -1097,22 +1177,84 @@ export function CashCatalogSettingsView({
             </div>
           </div>
 
+          <div className="grid grid-cols-3 gap-3 items-end">
+            <div>
+              <label className="block font-bold mb-1">
+                {newUserForm.id ? 'Nueva Contraseña (Opcional)' : 'Contraseña'}
+              </label>
+              <input
+                type="password"
+                placeholder={newUserForm.id ? 'Dejar vacío para no cambiar' : 'Ej: Montana2026*'}
+                value={newUserForm.password}
+                onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
+                className="w-full rounded-lg border border-slate-300 px-2.5 py-2"
+                required={!newUserForm.id}
+              />
+            </div>
+            <div>
+              <label className="block font-bold mb-1">Cargo / Puesto</label>
+              <input
+                type="text"
+                value={newUserForm.position}
+                onChange={(e) => setNewUserForm({ ...newUserForm, position: e.target.value })}
+                className="w-full rounded-lg border border-slate-300 px-2.5 py-2"
+              />
+            </div>
+            <div className="pb-2">
+              <label className="inline-flex items-center gap-2 font-bold cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={newUserForm.isActive}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, isActive: e.target.checked })}
+                  className="rounded border-slate-300 text-ocean-700"
+                />
+                <span>Usuario Activo</span>
+              </label>
+            </div>
+          </div>
+
           <button
             type="submit"
             className="w-full py-2.5 rounded-xl bg-ocean-800 hover:bg-ocean-900 text-white font-bold"
           >
-            Registrar Usuario y Empleado
+            {newUserForm.id ? 'Guardar Cambios del Usuario' : 'Registrar Usuario y Empleado'}
           </button>
 
-          <div className="pt-2 max-h-40 overflow-y-auto divide-y divide-slate-100">
+          <div className="pt-2 max-h-56 overflow-y-auto divide-y divide-slate-100">
             {(usersData?.users || []).map((u: any) => (
-              <div key={u.id} className="py-1.5 flex items-center justify-between text-xs">
-                <div>
-                  <strong>{u.username}</strong> ({u.employee?.firstName} {u.employee?.lastName})
+              <div key={u.id} className="py-2 flex items-center justify-between text-xs gap-2">
+                <div className="min-w-0">
+                  <div className="truncate">
+                    <strong>{u.username}</strong> ({u.employee?.firstName} {u.employee?.lastName})
+                    {u.isActive === false && (
+                      <span className="ml-1.5 px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-bold text-[10px]">
+                        INACTIVO
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate">
+                    {u.email} • {u.employee?.position || 'Personal Operativo'}
+                  </div>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-slate-100 font-bold text-slate-700">
-                  {u.role?.code}
-                </span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="px-2 py-0.5 rounded bg-slate-100 font-bold text-slate-700">
+                    {u.role?.code}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleEditUser(u)}
+                    className="px-2 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold border border-blue-200"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteUser(u)}
+                    className="px-2 py-1 rounded-md bg-red-50 hover:bg-red-100 text-red-700 font-bold border border-red-200"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
             ))}
           </div>
