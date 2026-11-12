@@ -25,6 +25,10 @@ import {
   Sparkles,
   CreditCard,
   Banknote,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   apiFetch,
@@ -91,6 +95,8 @@ export default function MontanaRedondaApp() {
   const [bootstrapData, setBootstrapData] = useState<any>(null);
   const [salesHistory, setSalesHistory] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<MainTab>('POS');
+  const [mobileNavOpen, setMobileNavOpen] = useState<boolean>(false);
+  const [mobileCatalogOpen, setMobileCatalogOpen] = useState<boolean>(false);
 
   // ==================== ESTADO DEL POS (SECCIÓN 3 Y 4) ====================
   const [searchQuery, setSearchQuery] = useState('');
@@ -658,41 +664,41 @@ export default function MontanaRedondaApp() {
   return (
     <div className="min-h-screen flex flex-col bg-earth-50">
       {/* Barra Superior de Navegación e Identidad */}
-      <header className="no-print bg-mountain-900 text-white border-b border-mountain-800 px-4 py-2.5 shadow-md sticky top-0 z-30">
-        <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3">
+      <header className="no-print bg-mountain-900 text-white border-b border-mountain-800 px-3 sm:px-4 py-2.5 shadow-md sticky top-0 z-30">
+        <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-2">
           {/* Marca */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gold-500/20 border border-gold-400/40 flex items-center justify-center">
-              <Mountain className="w-6 h-6 text-gold-400" />
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gold-500/20 border border-gold-400/40 flex items-center justify-center shrink-0">
+              <Mountain className="w-5 h-5 sm:w-6 sm:h-6 text-gold-400" />
             </div>
-            <div>
-              <div className="font-black text-sm tracking-wide flex items-center gap-2">
-                MONTAÑA REDONDA PARADISE
-                <span className="px-2 py-0.5 rounded-full bg-gold-500 text-slate-950 text-[10px] font-black">
+            <div className="min-w-0">
+              <div className="font-black text-xs sm:text-sm tracking-wide flex items-center gap-1.5 truncate">
+                <span className="truncate">MONTAÑA REDONDA PARADISE</span>
+                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-gold-500 text-slate-950 text-[10px] font-black shrink-0">
                   MICHÉS, RD
                 </span>
               </div>
-              <div className="text-[11px] text-mountain-200 flex items-center gap-3">
+              <div className="text-[10px] sm:text-[11px] text-mountain-200 flex items-center gap-2 truncate">
                 <span>
                   Caja:{' '}
                   <strong>
-                    {bootstrapData?.activeSession?.cashRegister?.code || 'SIN CAJA ABIERTA'}
+                    {bootstrapData?.activeSession?.cashRegister?.code || 'SIN CAJA'}
                   </strong>
                 </span>
                 <span>•</span>
                 <span>
-                  Tasa USD: <strong>RD$ {exchangeRate.toFixed(2)}</strong>
+                  USD: <strong>RD$ {exchangeRate.toFixed(2)}</strong>
                 </span>
-                <span>•</span>
-                <span>
+                <span className="hidden md:inline">•</span>
+                <span className="hidden md:inline">
                   RNC: <strong>{bootstrapData?.company?.rnc}</strong>
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Navegación por Módulos */}
-          <nav className="flex flex-wrap items-center gap-1.5">
+          {/* Navegación por Módulos (SOLO ESCRITORIO / PC: hidden xl:flex) */}
+          <nav className="hidden xl:flex flex-wrap items-center gap-1.5">
             <button
               onClick={() => setActiveTab('POS')}
               className={`px-3 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition ${
@@ -771,8 +777,21 @@ export default function MontanaRedondaApp() {
             </button>
           </nav>
 
-          {/* Usuario Activo y Cierre de Sesión */}
-          <div className="flex items-center gap-2">
+          {/* Controles Derecha: Botón Menú Desplegable (Móvil/Tablet) + Usuario y Salir */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Botón Menú Desplegable SOLO en Celulares y Tablets (xl:hidden) */}
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen((prev) => !prev)}
+              className="xl:hidden px-3 py-2 rounded-xl bg-gold-500 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow"
+            >
+              {mobileNavOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              <span>Menú</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform ${mobileNavOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+
             <div className="text-right hidden sm:block">
               <div className="text-xs font-bold">{authUser.employeeName || authUser.username}</div>
               <div className="text-[10px] text-gold-400 font-extrabold uppercase">
@@ -788,6 +807,109 @@ export default function MontanaRedondaApp() {
             </button>
           </div>
         </div>
+
+        {/* Menú Desplegable Superior para Celulares y Tablets (xl:hidden) */}
+        {mobileNavOpen && (
+          <div className="xl:hidden mt-2.5 pt-2.5 border-t border-mountain-800 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+            <button
+              onClick={() => {
+                setActiveTab('POS');
+                setMobileNavOpen(false);
+              }}
+              className={`px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition ${
+                activeTab === 'POS'
+                  ? 'bg-gold-500 text-slate-950 shadow'
+                  : 'bg-mountain-800/90 text-white hover:bg-mountain-700'
+              }`}
+            >
+              <ShoppingCart className="w-4 h-4" /> Punto de Venta (POS)
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('SCANNER_OPS');
+                setMobileNavOpen(false);
+              }}
+              className={`px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition ${
+                activeTab === 'SCANNER_OPS'
+                  ? 'bg-gold-500 text-slate-950 shadow'
+                  : 'bg-mountain-800/90 text-white hover:bg-mountain-700'
+              }`}
+            >
+              <QrCode className="w-4 h-4" /> Escáner QR & Actividades
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('INVOICES_TICKETS');
+                setMobileNavOpen(false);
+              }}
+              className={`px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition ${
+                activeTab === 'INVOICES_TICKETS'
+                  ? 'bg-gold-500 text-slate-950 shadow'
+                  : 'bg-mountain-800/90 text-white hover:bg-mountain-700'
+              }`}
+            >
+              <FileText className="w-4 h-4" /> Facturas & Tickets ({salesHistory.length})
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('CASH');
+                setMobileNavOpen(false);
+              }}
+              className={`px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition ${
+                activeTab === 'CASH'
+                  ? 'bg-gold-500 text-slate-950 shadow'
+                  : 'bg-mountain-800/90 text-white hover:bg-mountain-700'
+              }`}
+            >
+              <Wallet className="w-4 h-4" /> Caja DOP/USD
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('CATALOG');
+                setMobileNavOpen(false);
+              }}
+              className={`px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition ${
+                activeTab === 'CATALOG'
+                  ? 'bg-gold-500 text-slate-950 shadow'
+                  : 'bg-mountain-800/90 text-white hover:bg-mountain-700'
+              }`}
+            >
+              <Layers className="w-4 h-4" /> Catálogo & Paquetes
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('DASHBOARD_REPORTS');
+                setMobileNavOpen(false);
+              }}
+              className={`px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition ${
+                activeTab === 'DASHBOARD_REPORTS'
+                  ? 'bg-gold-500 text-slate-950 shadow'
+                  : 'bg-mountain-800/90 text-white hover:bg-mountain-700'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" /> Dashboard & 13 Reportes
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('SETTINGS');
+                setMobileNavOpen(false);
+              }}
+              className={`px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition sm:col-span-2 ${
+                activeTab === 'SETTINGS'
+                  ? 'bg-gold-500 text-slate-950 shadow'
+                  : 'bg-mountain-800/90 text-white hover:bg-mountain-700'
+              }`}
+            >
+              <Settings className="w-4 h-4" /> Fiscal RD & Auditoría
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Contenido Principal */}
@@ -856,8 +978,101 @@ export default function MontanaRedondaApp() {
                 </div>
               </div>
 
-              {/* Filtros por Categorías */}
-              <div className="flex flex-wrap gap-1.5 pb-1">
+              {/* Selector Desplegable Rápido de Servicios y Categorías (SOLO Celulares y Tablets: lg:hidden) */}
+              <div className="lg:hidden space-y-2.5 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <div>
+                  <label className="block text-[11px] font-extrabold uppercase text-mountain-900 mb-1">
+                    Menú Desplegable: Agregar Servicio o Paquete al Ticket
+                  </label>
+                  <select
+                    defaultValue=""
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (!val) return;
+                      if (val.startsWith('PKG:')) {
+                        const pkgId = val.slice(4);
+                        const pkg = (bootstrapData?.packages || []).find((p: any) => p.id === pkgId);
+                        if (pkg) addPackageToCart(pkg);
+                      } else if (val.startsWith('SVC:')) {
+                        const svcId = val.slice(4);
+                        const svc = (bootstrapData?.services || []).find((s: any) => s.id === svcId);
+                        if (svc) addServiceToCart(svc);
+                      }
+                      e.target.value = '';
+                    }}
+                    className="w-full rounded-xl border-2 border-mountain-600 bg-white px-3 py-2.5 text-xs font-extrabold text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-mountain-700"
+                  >
+                    <option value="">
+                      ➕ Toca aquí para elegir un Servicio o Paquete disponible...
+                    </option>
+                    {(bootstrapData?.packages || []).length > 0 && (
+                      <optgroup label="📦 PAQUETES TURÍSTICOS">
+                        {(bootstrapData?.packages || []).map((pkg: any) => (
+                          <option key={pkg.id} value={`PKG:${pkg.id}`}>
+                            {pkg.name} — {formatDop(pkg.priceDop)} ({formatUsd(pkg.priceUsd)})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <optgroup label="🏔️ SERVICIOS Y ACTIVIDADES INDIVIDUALES">
+                      {(bootstrapData?.services || []).map((svc: any) => {
+                        const dop =
+                          svc.prices?.find((p: any) => p.currency === 'DOP')?.unitPrice || 0;
+                        const usd =
+                          svc.prices?.find((p: any) => p.currency === 'USD')?.unitPrice ||
+                          (Number(dop) / exchangeRate).toFixed(2);
+                        return (
+                          <option key={svc.id} value={`SVC:${svc.id}`}>
+                            {svc.name} ({svc.category?.name || 'Actividad'}) — {formatDop(dop)} /{' '}
+                            {formatUsd(usd)}
+                          </option>
+                        );
+                      })}
+                    </optgroup>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <select
+                    value={selectedCategoryId}
+                    onChange={(e) => {
+                      setSelectedCategoryId(e.target.value);
+                      setMobileCatalogOpen(true);
+                    }}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800"
+                  >
+                    <option value="ALL">Categoría: Todos los Servicios</option>
+                    <option value="PACKAGES">
+                      📦 Paquetes Turísticos ({(bootstrapData?.packages || []).length})
+                    </option>
+                    {(bootstrapData?.categories || []).map((cat: any) => (
+                      <option key={cat.id} value={cat.id}>
+                        Categoría: {cat.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => setMobileCatalogOpen((prev) => !prev)}
+                    className="w-full px-3 py-2 rounded-xl bg-mountain-800 hover:bg-mountain-900 text-white text-xs font-extrabold flex items-center justify-between gap-2"
+                  >
+                    <span>
+                      {mobileCatalogOpen
+                        ? 'Ocultar Tarjetas de Servicios'
+                        : `Ver Tarjetas de Servicios (${filteredPackages.length + filteredServices.length})`}
+                    </span>
+                    {mobileCatalogOpen ? (
+                      <ChevronUp className="w-4 h-4 shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 shrink-0" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Filtros por Categorías (SOLO Escritorio / PC: hidden lg:flex) */}
+              <div className="hidden lg:flex flex-wrap gap-1.5 pb-1">
                 <button
                   onClick={() => setSelectedCategoryId('ALL')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
@@ -893,8 +1108,12 @@ export default function MontanaRedondaApp() {
                 ))}
               </div>
 
-              {/* Tarjetas Visuales de Servicios y Paquetes */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[68vh] overflow-y-auto pr-1">
+              {/* Tarjetas Visuales de Servicios y Paquetes (Ocultas por defecto en Celular/Tablet hasta desplegar, siempre visibles en PC lg:grid) */}
+              <div
+                className={`${
+                  mobileCatalogOpen ? 'grid' : 'hidden'
+                } lg:grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[68vh] overflow-y-auto pr-1`}
+              >
                 {/* Tarjetas de Paquetes Turísticos */}
                 {filteredPackages.map((pkg: any) => {
                   const totalTicketsPerPkg = (pkg.items || []).reduce(
