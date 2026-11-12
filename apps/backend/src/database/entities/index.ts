@@ -176,10 +176,10 @@ export class CompanySetting {
   @Column({ length: 120, default: 'recepcion@montanaredondaparadise.com' })
   email: string;
 
-  @Column({ name: 'primary_currency', length: 5, default: CurrencyCode.DOP })
+  @Column({ name: 'primary_currency', type: 'varchar', length: 5, default: CurrencyCode.DOP })
   primaryCurrency: CurrencyCode;
 
-  @Column({ name: 'secondary_currency', length: 5, default: CurrencyCode.USD })
+  @Column({ name: 'secondary_currency', type: 'varchar', length: 5, default: CurrencyCode.USD })
   secondaryCurrency: CurrencyCode;
 
   @Column({ name: 'exchange_rate_usd_to_dop', type: 'numeric', precision: 10, scale: 4, default: 60.5 })
@@ -305,7 +305,7 @@ export class Service {
   @Column({ name: 'instructions_text', type: 'text', nullable: true })
   instructionsText: string;
 
-  @Column({ length: 20, default: 'ACTIVE' })
+  @Column({ type: 'varchar', length: 20, default: 'ACTIVE' })
   status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
 
   @OneToMany(() => ServicePrice, (sp) => sp.service, { eager: true, cascade: true })
@@ -331,10 +331,10 @@ export class ServicePrice {
   @JoinColumn({ name: 'service_id' })
   service: Service;
 
-  @Column({ name: 'rate_type', length: 30, default: RateType.GENERAL })
+  @Column({ name: 'rate_type', type: 'varchar', length: 30, default: RateType.GENERAL })
   rateType: RateType;
 
-  @Column({ length: 5, default: CurrencyCode.DOP })
+  @Column({ type: 'varchar', length: 5, default: CurrencyCode.DOP })
   currency: CurrencyCode;
 
   @Column({ name: 'unit_price', type: 'numeric', precision: 12, scale: 2 })
@@ -375,7 +375,7 @@ export class TourPackage {
   @JoinColumn({ name: 'tax_setting_id' })
   taxSetting: TaxSetting;
 
-  @Column({ length: 20, default: 'ACTIVE' })
+  @Column({ type: 'varchar', length: 20, default: 'ACTIVE' })
   status: 'ACTIVE' | 'INACTIVE';
 
   @OneToMany(() => PackageItem, (pi) => pi.tourPackage, { eager: true, cascade: true })
@@ -421,16 +421,16 @@ export class Visitor {
   @Column({ name: 'full_name', length: 120 })
   fullName: string;
 
-  @Column({ name: 'document_type', length: 20, default: 'NONE' })
+  @Column({ name: 'document_type', type: 'varchar', length: 20, default: 'NONE' })
   documentType: 'CEDULA' | 'PASSPORT' | 'NONE';
 
-  @Column({ name: 'document_number', length: 40, nullable: true })
+  @Column({ name: 'document_number', type: 'varchar', length: 40, nullable: true })
   documentNumber: string;
 
-  @Column({ length: 60, nullable: true, default: 'Dominicana' })
+  @Column({ type: 'varchar', length: 60, nullable: true, default: 'Dominicana' })
   nationality: string;
 
-  @Column({ name: 'visitor_type', length: 20, default: VisitorType.ADULT })
+  @Column({ name: 'visitor_type', type: 'varchar', length: 20, default: VisitorType.ADULT })
   visitorType: VisitorType;
 
   @Column({ length: 40, nullable: true })
@@ -488,7 +488,7 @@ export class CashSession {
   @Column({ name: 'closed_by_user_id', type: 'uuid', nullable: true })
   closedByUserId: string | null;
 
-  @Column({ length: 20, default: CashSessionStatus.OPEN })
+  @Column({ type: 'varchar', length: 20, default: CashSessionStatus.OPEN })
   status: CashSessionStatus;
 
   @Column({ name: 'opening_amount_dop', type: 'numeric', precision: 12, scale: 2, default: 0 })
@@ -580,13 +580,13 @@ export class Sale {
   @Column({ name: 'customer_email', length: 120, nullable: true })
   customerEmail: string;
 
-  @Column({ name: 'ncf_type', length: 10, default: NcfType.B02 })
+  @Column({ name: 'ncf_type', type: 'varchar', length: 10, default: NcfType.B02 })
   ncfType: NcfType;
 
-  @Column({ name: 'ncf_number', length: 25, nullable: true })
+  @Column({ name: 'ncf_number', type: 'varchar', length: 25, nullable: true })
   ncfNumber: string | null;
 
-  @Column({ length: 5, default: CurrencyCode.DOP })
+  @Column({ type: 'varchar', length: 5, default: CurrencyCode.DOP })
   currency: CurrencyCode;
 
   @Column({ name: 'exchange_rate_applied', type: 'numeric', precision: 10, scale: 4, default: 60.5 })
@@ -604,7 +604,7 @@ export class Sale {
   @Column({ name: 'discount_amount_dop', type: 'numeric', precision: 12, scale: 2, default: 0 })
   discountAmountDop: number;
 
-  @Column({ name: 'discount_reason', length: 150, nullable: true })
+  @Column({ name: 'discount_reason', type: 'varchar', length: 150, nullable: true })
   discountReason: string | null;
 
   @Column({ name: 'tax_amount_dop', type: 'numeric', precision: 12, scale: 2, default: 0 })
@@ -622,13 +622,13 @@ export class Sale {
   @Column({ name: 'change_given_dop', type: 'numeric', precision: 12, scale: 2, default: 0 })
   changeGivenDop: number;
 
-  @Column({ length: 25, default: SaleStatus.PAID })
+  @Column({ type: 'varchar', length: 25, default: SaleStatus.PAID })
   status: SaleStatus;
 
   @Column({ name: 'admin_access_override', default: false })
   adminAccessOverride: boolean;
 
-  @Column({ name: 'credit_note_number', length: 30, nullable: true })
+  @Column({ name: 'credit_note_number', type: 'varchar', length: 30, nullable: true })
   creditNoteNumber: string | null;
 
   @Column({ name: 'void_reason', type: 'text', nullable: true })
@@ -669,7 +669,7 @@ export class SaleItem {
   @JoinColumn({ name: 'sale_id' })
   sale: Sale;
 
-  @Column({ name: 'item_type', length: 20, default: 'SERVICE' })
+  @Column({ name: 'item_type', type: 'varchar', length: 20, default: 'SERVICE' })
   itemType: 'SERVICE' | 'PACKAGE';
 
   @Column({ name: 'service_id', type: 'uuid', nullable: true })
@@ -686,7 +686,7 @@ export class SaleItem {
   @JoinColumn({ name: 'package_id' })
   tourPackage: TourPackage | null;
 
-  @Column({ name: 'rate_type', length: 30, default: RateType.GENERAL })
+  @Column({ name: 'rate_type', type: 'varchar', length: 30, default: RateType.GENERAL })
   rateType: RateType;
 
   @Column({ name: 'description_snapshot', length: 160 })
@@ -740,13 +740,13 @@ export class SaleParticipant {
   @Column({ name: 'participant_index', type: 'int' })
   participantIndex: number;
 
-  @Column({ name: 'display_name', length: 120, nullable: true })
+  @Column({ name: 'display_name', type: 'varchar', length: 120, nullable: true })
   displayName: string | null;
 
-  @Column({ name: 'participant_type', length: 20, default: VisitorType.ADULT })
+  @Column({ name: 'participant_type', type: 'varchar', length: 20, default: VisitorType.ADULT })
   participantType: VisitorType;
 
-  @Column({ length: 60, nullable: true })
+  @Column({ type: 'varchar', length: 60, nullable: true })
   nationality: string | null;
 }
 
@@ -756,13 +756,13 @@ export class PaymentMethod {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true, length: 30 })
+  @Column({ type: 'varchar', unique: true, length: 30 })
   code: PaymentMethodCode;
 
-  @Column({ length: 80 })
+  @Column({ type: 'varchar', length: 80 })
   name: string;
 
-  @Column({ length: 5, default: CurrencyCode.DOP })
+  @Column({ type: 'varchar', length: 5, default: CurrencyCode.DOP })
   currency: CurrencyCode;
 
   @Column({ name: 'requires_reference', default: false })
@@ -795,7 +795,7 @@ export class Payment {
   @JoinColumn({ name: 'payment_method_id' })
   paymentMethod: PaymentMethod;
 
-  @Column({ length: 5 })
+  @Column({ type: 'varchar', length: 5 })
   currency: CurrencyCode;
 
   @Column({ name: 'amount_original', type: 'numeric', precision: 12, scale: 2 })
@@ -807,10 +807,10 @@ export class Payment {
   @Column({ name: 'amount_dop_equivalent', type: 'numeric', precision: 12, scale: 2 })
   amountDopEquivalent: number;
 
-  @Column({ name: 'reference_number', length: 80, nullable: true })
+  @Column({ name: 'reference_number', type: 'varchar', length: 80, nullable: true })
   referenceNumber: string | null;
 
-  @Column({ length: 20, default: 'COMPLETED' })
+  @Column({ type: 'varchar', length: 20, default: 'COMPLETED' })
   status: 'COMPLETED' | 'VOIDED' | 'REFUNDED';
 
   @Column({ name: 'created_by_user_id' })
@@ -839,10 +839,10 @@ export class CashMovement {
   @Column({ name: 'payment_id', type: 'uuid', nullable: true })
   paymentId: string | null;
 
-  @Column({ name: 'movement_type', length: 30 })
+  @Column({ name: 'movement_type', type: 'varchar', length: 30 })
   movementType: CashMovementType;
 
-  @Column({ length: 5 })
+  @Column({ type: 'varchar', length: 5 })
   currency: CurrencyCode;
 
   @Column({ type: 'numeric', precision: 12, scale: 2 })
@@ -914,10 +914,10 @@ export class Ticket {
   @JoinColumn({ name: 'sale_participant_id' })
   saleParticipant: SaleParticipant | null;
 
-  @Column({ name: 'visitor_name_snapshot', length: 120, nullable: true })
+  @Column({ name: 'visitor_name_snapshot', type: 'varchar', length: 120, nullable: true })
   visitorNameSnapshot: string | null;
 
-  @Column({ name: 'participant_type', length: 20, default: VisitorType.ADULT })
+  @Column({ name: 'participant_type', type: 'varchar', length: 20, default: VisitorType.ADULT })
   participantType: VisitorType;
 
   @Column({ name: 'sequence_in_sale', type: 'int' })
@@ -926,7 +926,7 @@ export class Ticket {
   @Column({ name: 'total_in_sale', type: 'int', default: 1 })
   totalInSale: number;
 
-  @Column({ length: 20, default: TicketStatus.AVAILABLE })
+  @Column({ type: 'varchar', length: 20, default: TicketStatus.AVAILABLE })
   status: TicketStatus;
 
   @Column({ name: 'valid_from', type: 'varchar', length: 15 })
@@ -941,10 +941,10 @@ export class Ticket {
   @Column({ name: 'used_by_user_id', type: 'uuid', nullable: true })
   usedByUserId: string | null;
 
-  @Column({ name: 'used_by_username', length: 80, nullable: true })
+  @Column({ name: 'used_by_username', type: 'varchar', length: 80, nullable: true })
   usedByUsername: string | null;
 
-  @Column({ name: 'used_at_access_point', length: 100, nullable: true })
+  @Column({ name: 'used_at_access_point', type: 'varchar', length: 100, nullable: true })
   usedAtAccessPoint: string | null;
 
   @Column({ name: 'cancelled_at', type: 'timestamptz', nullable: true })
@@ -996,19 +996,19 @@ export class TicketValidation {
   @JoinColumn({ name: 'validated_by_user_id' })
   validatedByUser: User;
 
-  @Column({ name: 'validation_result', length: 40 })
+  @Column({ name: 'validation_result', type: 'varchar', length: 40 })
   validationResult: ValidationResultCode;
 
-  @Column({ name: 'previous_status', length: 20, nullable: true })
+  @Column({ name: 'previous_status', type: 'varchar', length: 20, nullable: true })
   previousStatus: string | null;
 
-  @Column({ name: 'new_status', length: 20, nullable: true })
+  @Column({ name: 'new_status', type: 'varchar', length: 20, nullable: true })
   newStatus: string | null;
 
-  @Column({ name: 'access_point', length: 100 })
+  @Column({ name: 'access_point', type: 'varchar', length: 100 })
   accessPoint: string;
 
-  @Column({ name: 'device_info', length: 255, nullable: true })
+  @Column({ name: 'device_info', type: 'varchar', length: 255, nullable: true })
   deviceInfo: string | null;
 
   @Column({ name: 'safety_instructions_accepted', default: false })
@@ -1054,10 +1054,10 @@ export class ActivityIncident {
   @JoinColumn({ name: 'reported_by_user_id' })
   reportedByUser: User;
 
-  @Column({ length: 20, default: IncidentSeverity.MEDIUM })
+  @Column({ type: 'varchar', length: 20, default: IncidentSeverity.MEDIUM })
   severity: IncidentSeverity;
 
-  @Column({ name: 'incident_type', length: 50 })
+  @Column({ name: 'incident_type', type: 'varchar', length: 50 })
   incidentType: string;
 
   @Column({ type: 'text' })
@@ -1066,7 +1066,7 @@ export class ActivityIncident {
   @Column({ name: 'resolution_taken', type: 'text', nullable: true })
   resolutionTaken: string | null;
 
-  @Column({ length: 20, default: 'OPEN' })
+  @Column({ type: 'varchar', length: 20, default: 'OPEN' })
   status: 'OPEN' | 'RESOLVED';
 
   @CreateDateColumn({ name: 'occurred_at' })
@@ -1082,22 +1082,22 @@ export class AuditLog {
   @Column({ name: 'user_id', type: 'uuid', nullable: true })
   userId: string | null;
 
-  @Column({ length: 80, nullable: true })
+  @Column({ type: 'varchar', length: 80, nullable: true })
   username: string | null;
 
-  @Column({ length: 60 })
+  @Column({ type: 'varchar', length: 60 })
   action: string;
 
-  @Column({ name: 'entity_name', length: 60 })
+  @Column({ name: 'entity_name', type: 'varchar', length: 60 })
   entityName: string;
 
-  @Column({ name: 'entity_id', length: 80, nullable: true })
+  @Column({ name: 'entity_id', type: 'varchar', length: 80, nullable: true })
   entityId: string | null;
 
   @Column({ name: 'details_json', type: 'simple-json', nullable: true })
   detailsJson: Record<string, any> | null;
 
-  @Column({ name: 'ip_address', length: 50, nullable: true })
+  @Column({ name: 'ip_address', type: 'varchar', length: 50, nullable: true })
   ipAddress: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
@@ -1110,7 +1110,7 @@ export class FiscalSequence {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'ncf_type', unique: true, length: 10 })
+  @Column({ name: 'ncf_type', type: 'varchar', unique: true, length: 10 })
   ncfType: NcfType;
 
   @Column({ length: 80 })
