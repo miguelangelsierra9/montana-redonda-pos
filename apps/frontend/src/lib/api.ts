@@ -41,10 +41,16 @@ export function getApiBase(): string {
       return normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
     }
 
-    // 4. Por defecto en local o túnel unificado usa /api
-    return '/api';
+    // 4. Si corre en localhost usar /api local; en dominio público usar el Backend de Render por defecto
+    if (
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1'
+    ) {
+      return '/api';
+    }
+    return 'https://montana-redonda-backend-0jt9.onrender.com/api';
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+  return process.env.NEXT_PUBLIC_API_URL || 'https://montana-redonda-backend-0jt9.onrender.com/api';
 }
 
 export function getStoredToken(): string | null {
