@@ -2,11 +2,48 @@ import { NestFactory } from '@nestjs/core';
 import { Client } from 'pg';
 import { AppModule } from './app.module';
 
+function resolveCloudDatabaseUrl(): string | undefined {
+  const raw = (process.env.DATABASE_URL || process.env.RENDER_DATABASE_URL)?.trim();
+  if (!raw) return undefined;
+  const match = raw.match(/postgres(?:ql)?:\/\/[^\s'"]+/i);
+  return match ? match[0] : raw.replace(/^['"]|['"]$/g, '');
+}
+
 async function ensureDatabaseExists() {
-  if (process.env.DATABASE_URL) {
-    // En bases de datos cloud (Neon.tech, Supabase, Render PostgreSQL) la base ya viene creada
+  const cloudUrl = resolveCloudDatabaseUrl();
+  if (cloudUrl) {
+    process.env.EFFECTIVE_DATABASE_URL = cloudUrl;
+    // Detectar automáticamente si el servidor PostgreSQL requiere SSL (Neon/Supabase/Render)
+    const testSslClient = new Client({
+      connectionString: cloudUrl,
+      ssl: { rejectUnauthorized: false },
+    });
+    try {
+      await testSslClient.connect();
+      process.env.DB_USE_SSL = 'true';
+      console.log('✅ Conexión PostgreSQL Cloud (SSL) verificada exitosamente.');
+    } catch (err: any) {
+      const msg = String(err?.message || '');
+      if (msg.includes('does not support SSL')) {
+        process.env.DB_USE_SSL = 'false';
+        console.log('ℹ️ Conexión PostgreSQL Cloud sin SSL detectada.');
+      } else {
+        process.env.DB_USE_SSL = 'true';
+        console.warn('Aviso al verificar PostgreSQL Cloud:', msg);
+      }
+    } finally {
+      await testSslClient.end().catch(() => {});
+    }
     return;
   }
+
+  if (process.env.NODE_ENV === 'production') {
+    console.error(
+      '❌ ERROR CRÍTICO: No se encontró DATABASE_URL ni RENDER_DATABASE_URL en las variables de entorno de Render.',
+    );
+    return;
+  }
+
   const client = new Client({
     host: process.env.DB_HOST || 'localhost',
     port: Number(process.env.DB_PORT || 5432),

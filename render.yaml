@@ -1,6 +1,15 @@
 # ==============================================================================
 # MONTAÑA REDONDA PARADISE - CONFIGURACIÓN 1-CLIC PARA RENDER.COM (PLAN GRATIS)
 # ==============================================================================
+# Crea automáticamente tanto la Base de Datos PostgreSQL gratuita en Render
+# como el Backend NestJS conectado a ella (o usa DATABASE_URL de Neon si existe).
+
+databases:
+  - name: montana-redonda-db
+    databaseName: montana_redonda_db
+    user: mrp_admin
+    plan: free
+
 services:
   - type: web
     name: montana-redonda-backend
@@ -19,5 +28,7 @@ services:
         generateValue: true
       - key: QR_HMAC_SECRET
         generateValue: true
-      - key: DATABASE_URL
-        sync: false
+      - key: RENDER_DATABASE_URL
+        fromDatabase:
+          name: montana-redonda-db
+          property: connectionString

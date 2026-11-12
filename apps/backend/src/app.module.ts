@@ -10,14 +10,15 @@ import { CoreDomainController, CoreDomainService, JwtStrategy } from './modules/
 import { JwtAuthGuard, RolesGuard } from './common/auth-guards';
 
 function getCleanDatabaseUrl(): string | undefined {
-  const raw = process.env.DATABASE_URL?.trim();
+  const raw = (
+    process.env.EFFECTIVE_DATABASE_URL ||
+    process.env.DATABASE_URL ||
+    process.env.RENDER_DATABASE_URL
+  )?.trim();
   if (!raw) return undefined;
-  // Si el usuario pegó el comando completo de Neon (ej: psql 'postgresql://...')
   const match = raw.match(/postgres(?:ql)?:\/\/[^\s'"]+/i);
   return match ? match[0] : raw.replace(/^['"]|['"]$/g, '');
 }
-
-const cleanDbUrl = getCleanDatabaseUrl();
 
 @Module({
   imports: [
@@ -25,28 +26,32 @@ const cleanDbUrl = getCleanDatabaseUrl();
       isGlobal: true,
       envFilePath: ['../../.env', '.env'],
     }),
-    TypeOrmModule.forRoot(
-      cleanDbUrl
-        ? {
-            type: 'postgres',
+    TypeOrmModule.forRootAsync({
+      useFactory: () => {
+        const cleanDbUrl = getCleanDatabaseUrl();
+        if (cleanDbUrl) {
+          return {
+            type: 'postgres' as const,
             url: cleanDbUrl,
-            ssl: { rejectUnauthorized: false },
+            ssl: process.env.DB_USE_SSL === 'false' ? false : { rejectUnauthorized: false },
             entities: ALL_ENTITIES,
             synchronize: true,
             logging: false,
-          }
-        : {
-            type: 'postgres',
-            host: process.env.DB_HOST || 'localhost',
-            port: Number(process.env.DB_PORT || 5432),
-            username: process.env.DB_USER || 'mrp_admin',
-            password: process.env.DB_PASSWORD || 'mrp_secret_2026',
-            database: process.env.DB_NAME || 'montana_redonda_db',
-            entities: ALL_ENTITIES,
-            synchronize: true,
-            logging: false,
-          },
-    ),
+          };
+        }
+        return {
+          type: 'postgres' as const,
+          host: process.env.DB_HOST || 'localhost',
+          port: Number(process.env.DB_PORT || 5432),
+          username: process.env.DB_USER || 'mrp_admin',
+          password: process.env.DB_PASSWORD || 'mrp_secret_2026',
+          database: process.env.DB_NAME || 'montana_redonda_db',
+          entities: ALL_ENTITIES,
+          synchronize: true,
+          logging: false,
+        };
+      },
+    }),
     TypeOrmModule.forFeature(ALL_ENTITIES),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
