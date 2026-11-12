@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mrp_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-mrp_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mrp_secret_2026}
+      POSTGRES_DB: ${DB_NAME:-montana_redonda_db}
+      TZ: America/Santo_Domingo
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - mrp_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-mrp_admin} -d ${DB_NAME:-montana_redonda_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mrp_pgdata:
+

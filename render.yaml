@@ -1,0 +1,25 @@
+# ==============================================================================
+# MONTAÑA REDONDA PARADISE - CONFIGURACIÓN 1-CLIC PARA RENDER.COM (PLAN GRATIS)
+# ==============================================================================
+# Si subes este proyecto a GitHub y en Render.com eliges "New -> Blueprint",
+# Render creará automáticamente el Backend NestJS gratis conectado a tu base
+# de datos PostgreSQL (de Render o de Neon.tech).
+
+services:
+  - type: web
+    name: montana-redonda-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install -g pnpm && pnpm install --no-frozen-lockfile && pnpm --filter @mrp/shared run build && pnpm --filter @mrp/backend run build
+    startCommand: pnpm --filter @mrp/backend run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BACKEND_PORT
+        value: 4000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: QR_HMAC_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false # Pega aquí el Connection String gratuito de Neon.tech o Supabase

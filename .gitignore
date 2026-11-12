@@ -1,0 +1,29 @@
+# Dependencias
+node_modules/
+**/node_modules/
+.pnpm-store/
+
+# Compilación y cachés de Next.js / NestJS
+.next/
+**/.next/
+apps/frontend/out/
+dist/
+**/dist/
+build/
+tsconfig.tsbuildinfo
+**/*.tsbuildinfo
+
+# Variables de entorno locales con secretos
+.env.local
+.env.*.local
+
+# Datos locales de PostgreSQL si existieran
+.pgdata/
+pg-portable/
+
+# Logs y archivos del sistema
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db

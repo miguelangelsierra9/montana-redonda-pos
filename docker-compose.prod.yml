@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mrp_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-mrp_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mrp_secret_2026}
+      POSTGRES_DB: ${DB_NAME:-montana_redonda_db}
+      TZ: America/Santo_Domingo
+    volumes:
+      - mrp_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-mrp_admin} -d ${DB_NAME:-montana_redonda_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: mrp_backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-mrp_admin}
+      DB_PASSWORD: ${DB_PASSWORD:-mrp_secret_2026}
+      DB_NAME: ${DB_NAME:-montana_redonda_db}
+      PORT: 4000
+      JWT_SECRET: ${JWT_SECRET}
+      QR_HMAC_SECRET: ${QR_HMAC_SECRET}
+      TZ: America/Santo_Domingo
+    ports:
+      - "4000:4000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: mrp_frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      TZ: America/Santo_Domingo
+    ports:
+      - "3000:3000"
+
+volumes:
+  mrp_pgdata:
+

@@ -1,0 +1,24 @@
+{
+  "name": "montana-redonda-pos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema de Facturación, Ventas POS y Control de Actividades Turísticas QR - Montaña Redonda Paradise, Michés, RD",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --parallel -r run dev",
+    "dev:backend": "pnpm --filter @mrp/backend run start:dev",
+    "dev:frontend": "pnpm --filter @mrp/frontend run dev",
+    "build": "pnpm --filter @mrp/shared run build && pnpm --filter @mrp/backend run build && pnpm --filter @mrp/frontend run build",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:seed": "pnpm --filter @mrp/backend run seed",
+    "test": "pnpm --filter @mrp/backend run test",
+    "test:e2e": "pnpm --filter @mrp/backend run test:e2e"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
