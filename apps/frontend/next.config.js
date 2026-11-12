@@ -7,6 +7,8 @@ const nextConfig = {
   ...(isStaticExport
     ? {
         output: 'export',
+        basePath: process.env.BASE_PATH || '/montana',
+        assetPrefix: process.env.BASE_PATH || '/montana',
         trailingSlash: true,
       }
     : {

@@ -1,23 +1,28 @@
 # ==============================================================================
-# MONTAÑA REDONDA PARADISE - .htaccess PARA HOSTING COMPARTIDO (Apache/LiteSpeed)
+# MONTAÑA REDONDA PARADISE - .htaccess PARA SUBCARPETA /montana EN HOSTING
+# Dominio configurado: https://dominicancheaptransfer.com/montana/
 # ==============================================================================
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
+  RewriteBase /montana/
 
   # 1. Forzar HTTPS (Obligatorio para que la cámara QR funcione en celulares)
   RewriteCond %{HTTPS} off
   RewriteCond %{HTTP:X-Forwarded-Proto} !https
   RewriteCond %{HTTP_HOST} !^localhost [NC]
   RewriteCond %{HTTP_HOST} !^127\.0\.0\.1
-  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/montana/$1 [L,R=301]
 
-  # 2. Servir archivos existentes tal cual (.js, .css, imágenes, config.js)
+  # 2. Si el navegador entra a /montana/index.html, limpiar la URL a /montana/
+  RewriteCond %{THE_REQUEST} /index\.html [NC]
+  RewriteRule ^(.*)index\.html$ /montana/$1 [L,R=301]
+
+  # 3. Servir archivos existentes tal cual (.js, .css, imágenes, config.js)
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # 3. Redirigir cualquier ruta del sistema al index.html (SPA)
+  # 4. Redirigir cualquier ruta interna al index.html de /montana/
   RewriteRule ^ index.html [L]
 </IfModule>
 
@@ -29,4 +34,3 @@
     Header set Expires 0
   </FilesMatch>
 </IfModule>
-

@@ -11,8 +11,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <head>
-        {/* Carga la configuración editable desde public_html/config.js en Hosting Compartido */}
-        <script src="/config.js" />
+        {/* Carga la configuración editable desde /montana/config.js en Hosting Compartido */}
+        <script src="/montana/config.js" />
       </head>
       <body className="min-h-screen bg-earth-50 text-slate-900 antialiased">{children}</body>
     </html>
