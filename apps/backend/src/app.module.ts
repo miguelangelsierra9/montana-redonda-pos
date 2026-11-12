@@ -9,6 +9,16 @@ import { DatabaseInitializerService } from './database/database-initializer.serv
 import { CoreDomainController, CoreDomainService, JwtStrategy } from './modules/core-domain';
 import { JwtAuthGuard, RolesGuard } from './common/auth-guards';
 
+function getCleanDatabaseUrl(): string | undefined {
+  const raw = process.env.DATABASE_URL?.trim();
+  if (!raw) return undefined;
+  // Si el usuario pegó el comando completo de Neon (ej: psql 'postgresql://...')
+  const match = raw.match(/postgres(?:ql)?:\/\/[^\s'"]+/i);
+  return match ? match[0] : raw.replace(/^['"]|['"]$/g, '');
+}
+
+const cleanDbUrl = getCleanDatabaseUrl();
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -16,15 +26,11 @@ import { JwtAuthGuard, RolesGuard } from './common/auth-guards';
       envFilePath: ['../../.env', '.env'],
     }),
     TypeOrmModule.forRoot(
-      process.env.DATABASE_URL
+      cleanDbUrl
         ? {
             type: 'postgres',
-            url: process.env.DATABASE_URL,
-            ssl:
-              process.env.DATABASE_URL.includes('sslmode=require') ||
-              process.env.DB_SSL === 'true'
-                ? { rejectUnauthorized: false }
-                : false,
+            url: cleanDbUrl,
+            ssl: { rejectUnauthorized: false },
             entities: ALL_ENTITIES,
             synchronize: true,
             logging: false,
