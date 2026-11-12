@@ -13,6 +13,9 @@ importers:
       '@mrp/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@nestjs/cli':
+        specifier: ^10.4.5
+        version: 10.4.9(postcss@8.5.32)(uglify-js@3.19.3)
       '@nestjs/common':
         specifier: ^10.4.7
         version: 10.4.22(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1)
@@ -34,6 +37,21 @@ importers:
       '@nestjs/typeorm':
         specifier: ^10.0.2
         version: 10.0.2(@nestjs/common@10.4.22(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1))(@nestjs/core@10.4.22)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.31(pg@8.23.1)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@20.19.43)(typescript@5.9.3)))
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.25
+      '@types/node':
+        specifier: ^20.17.6
+        version: 20.19.43
+      '@types/passport-jwt':
+        specifier: ^4.0.1
+        version: 4.0.1
+      '@types/qrcode':
+        specifier: ^1.5.5
+        version: 1.5.6
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
@@ -64,37 +82,28 @@ importers:
       rxjs:
         specifier: ^7.8.1
         version: 7.8.2
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@20.19.43)(typescript@5.9.3)
+      tsconfig-paths:
+        specifier: ^4.2.0
+        version: 4.2.0
       typeorm:
         specifier: ^0.3.20
         version: 0.3.31(pg@8.23.1)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@20.19.43)(typescript@5.9.3))
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
     devDependencies:
-      '@nestjs/cli':
-        specifier: ^10.4.5
-        version: 10.4.9(postcss@8.5.32)(uglify-js@3.19.3)
       '@nestjs/schematics':
         specifier: ^10.1.4
         version: 10.2.3(chokidar@3.6.0)(typescript@5.9.3)
       '@nestjs/testing':
         specifier: ^10.4.7
         version: 10.4.22(@nestjs/common@10.4.22(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@8.1.1))(@nestjs/core@10.4.22)(@nestjs/platform-express@10.4.22)
-      '@types/bcryptjs':
-        specifier: ^2.4.6
-        version: 2.4.6
-      '@types/express':
-        specifier: ^4.17.21
-        version: 4.17.25
       '@types/jest':
         specifier: ^29.5.14
         version: 29.5.14
-      '@types/node':
-        specifier: ^20.17.6
-        version: 20.19.43
-      '@types/passport-jwt':
-        specifier: ^4.0.1
-        version: 4.0.1
-      '@types/qrcode':
-        specifier: ^1.5.5
-        version: 1.5.6
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
@@ -116,15 +125,6 @@ importers:
       ts-loader:
         specifier: ^9.5.1
         version: 9.6.2(typescript@5.9.3)(webpack@5.97.1(postcss@8.5.32)(uglify-js@3.19.3))
-      ts-node:
-        specifier: ^10.9.2
-        version: 10.9.2(@types/node@20.19.43)(typescript@5.9.3)
-      tsconfig-paths:
-        specifier: ^4.2.0
-        version: 4.2.0
-      typescript:
-        specifier: ^5.6.3
-        version: 5.9.3
 
   apps/frontend:
     dependencies:
