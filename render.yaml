@@ -1,12 +1,6 @@
 # ==============================================================================
 # MONTAÑA REDONDA PARADISE - CONFIGURACIÓN 1-CLIC PARA RENDER.COM (PLAN GRATIS)
 # ==============================================================================
-databases:
-  - name: montana-redonda-db
-    databaseName: montana_redonda_db
-    user: mrp_admin
-    plan: free
-
 services:
   - type: web
     name: montana-redonda-backend
@@ -27,11 +21,3 @@ services:
         generateValue: true
       - key: QR_HMAC_SECRET
         generateValue: true
-      - key: DATABASE_URL
-        fromDatabase:
-          name: montana-redonda-db
-          property: connectionString
-      - key: RENDER_DATABASE_URL
-        fromDatabase:
-          name: montana-redonda-db
-          property: connectionString
