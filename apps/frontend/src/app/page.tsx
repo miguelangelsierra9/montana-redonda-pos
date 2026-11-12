@@ -82,13 +82,10 @@ function generateIdempotencyUuid(): string {
 export default function MontanaRedondaApp() {
   // Autenticación
   const [authUser, setAuthUser] = useState<any>(null);
-  const [loginUsername, setLoginUsername] = useState('admin');
-  const [loginPassword, setLoginPassword] = useState('Montana2026*');
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loadingApp, setLoadingApp] = useState(true);
-  const [showApiConfig, setShowApiConfig] = useState(false);
-  const [customApiInput, setCustomApiInput] = useState('');
-  const [apiSavedNotice, setApiSavedNotice] = useState<string | null>(null);
 
   // Datos maestros desde PostgreSQL
   const [bootstrapData, setBootstrapData] = useState<any>(null);
@@ -160,7 +157,6 @@ export default function MontanaRedondaApp() {
   };
 
   useEffect(() => {
-    setCustomApiInput(getCustomApiUrl());
     const token = getStoredToken();
     if (token) {
       loadBootstrapAndSales();
@@ -624,6 +620,8 @@ export default function MontanaRedondaApp() {
               </label>
               <input
                 type="text"
+                placeholder="Ingrese su usuario"
+                autoComplete="username"
                 value={loginUsername}
                 onChange={(e) => setLoginUsername(e.target.value)}
                 className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-mountain-600"
@@ -635,6 +633,8 @@ export default function MontanaRedondaApp() {
               <label className="block text-xs font-bold text-slate-700 mb-1">Contraseña</label>
               <input
                 type="password"
+                placeholder="••••••••"
+                autoComplete="current-password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-mountain-600"
@@ -648,95 +648,6 @@ export default function MontanaRedondaApp() {
             >
               Iniciar Sesión en el Sistema
             </button>
-
-            {/* Selector Rápido de Roles de Prueba (Los 5 roles solicitados en Sección 13) */}
-            <div className="pt-3 border-t border-slate-200">
-              <div className="text-[11px] font-bold uppercase text-slate-500 mb-2">
-                Acceso Rápido por Rol Operativo (Clave: Montana2026*):
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
-                {[
-                  { u: 'admin', label: 'Administrador' },
-                  { u: 'gerente', label: 'Gerente' },
-                  { u: 'cajero', label: 'Cajero POS' },
-                  { u: 'recepcion', label: 'Recepción' },
-                  { u: 'operador', label: 'Operador QR' },
-                ].map((r) => (
-                  <button
-                    key={r.u}
-                    type="button"
-                    onClick={() => {
-                      setLoginUsername(r.u);
-                      setLoginPassword('Montana2026*');
-                    }}
-                    className={`px-2.5 py-1.5 rounded-lg border font-bold transition ${
-                      loginUsername === r.u
-                        ? 'bg-mountain-100 border-mountain-600 text-mountain-900'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Configuración de Servidor Backend para Hosting Compartido (Opción Híbrida) */}
-            <div className="pt-3 border-t border-slate-200">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowApiConfig(!showApiConfig);
-                  setApiSavedNotice(null);
-                }}
-                className="w-full flex items-center justify-between text-[11px] font-bold text-slate-500 hover:text-mountain-800 transition"
-              >
-                <span>🌐 Conexión de Servidor API ({getApiBase()})</span>
-                <span className="underline">{showApiConfig ? 'Ocultar' : 'Cambiar URL'}</span>
-              </button>
-
-              {showApiConfig && (
-                <div className="mt-2 p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
-                    Si alojaste esta web en tu <b>Hosting Compartido</b>, pega aquí la URL de tu Backend en <b>Render.com</b> (o edita <code>public_html/config.js</code> en cPanel):
-                  </p>
-                  <input
-                    type="url"
-                    placeholder="https://montana-redonda-backend.onrender.com/api"
-                    value={customApiInput}
-                    onChange={(e) => setCustomApiInput(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-mono"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCustomApiUrl(customApiInput);
-                        setCustomApiInput(getCustomApiUrl());
-                        setApiSavedNotice(`Conectado a: ${getApiBase()}`);
-                      }}
-                      className="flex-1 py-1.5 rounded-lg bg-mountain-700 text-white text-xs font-bold hover:bg-mountain-800"
-                    >
-                      Guardar Servidor
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCustomApiUrl('');
-                        setCustomApiInput('');
-                        setApiSavedNotice('Restaurado al valor de config.js / por defecto');
-                      }}
-                      className="px-2.5 py-1.5 rounded-lg border border-slate-300 text-slate-600 text-xs font-bold hover:bg-slate-100"
-                    >
-                      Por defecto
-                    </button>
-                  </div>
-                  {apiSavedNotice && (
-                    <div className="text-[11px] font-bold text-emerald-700">{apiSavedNotice}</div>
-                  )}
-                </div>
-              )}
-            </div>
           </form>
         </div>
       </div>
