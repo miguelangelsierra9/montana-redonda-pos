@@ -9,31 +9,19 @@ import { DatabaseInitializerService } from './database/database-initializer.serv
 import { CoreDomainController, CoreDomainService, JwtStrategy } from './modules/core-domain';
 import { JwtAuthGuard, RolesGuard } from './common/auth-guards';
 
-function getCleanDatabaseUrl(): string | undefined {
-  const raw = (
-    process.env.EFFECTIVE_DATABASE_URL ||
-    process.env.DATABASE_URL ||
-    process.env.RENDER_DATABASE_URL
-  )?.trim();
-  if (!raw) return undefined;
-  const match = raw.match(/postgres(?:ql)?:\/\/[^\s'"]+/i);
-  return match ? match[0] : raw.replace(/^['"]|['"]$/g, '');
-}
-
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
       envFilePath: ['../../.env', '.env'],
     }),
     TypeOrmModule.forRootAsync({
       useFactory: () => {
-        const cleanDbUrl = getCleanDatabaseUrl();
-        if (cleanDbUrl) {
+        const verifiedConfig = (global as any).__MRP_VERIFIED_DB_CONFIG__;
+        if (verifiedConfig) {
           return {
-            type: 'postgres' as const,
-            url: cleanDbUrl,
-            ssl: process.env.DB_USE_SSL === 'false' ? false : { rejectUnauthorized: false },
+            ...verifiedConfig,
             entities: ALL_ENTITIES,
             synchronize: true,
             logging: false,
@@ -75,4 +63,3 @@ function getCleanDatabaseUrl(): string | undefined {
   ],
 })
 export class AppModule {}
-
